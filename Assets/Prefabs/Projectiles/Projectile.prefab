@@ -145,7 +145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
-  isFlying: 1
+  isProjectile: 1
 --- !u!50 &2310223059701575269
 Rigidbody2D:
   serializedVersion: 4

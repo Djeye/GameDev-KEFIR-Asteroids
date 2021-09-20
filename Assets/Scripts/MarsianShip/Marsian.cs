@@ -1,17 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using asteroids.SpaceShip;
+using asteroids.Core;
 
 namespace asteroids.MarsianShip
 {
     public class Marsian : MonoBehaviour
     {
-        [SerializeField] float moveSpeed;
+        [SerializeField] private float moveSpeed;
         private Transform _playerShip;
 
-        void Start()
+        private void Start()
         {
+            // get link of player ship to follow it
             _playerShip = transform.parent.GetComponent<MarsianManager>().GetPlayerTransform();
         }
 
@@ -22,18 +21,19 @@ namespace asteroids.MarsianShip
 
         private void MoveMarsianToPlayer()
         {
-            Vector3 moveToVector = (_playerShip.position - transform.position).normalized;
-
-            transform.position += moveToVector * Time.fixedDeltaTime * moveSpeed;
-        }
-
-        private void OnTriggerEnter2D(Collider2D collision)
-        {
-            if (collision.TryGetComponent(out Projectile projectile))
+            if (!Extension.isGameEnded)
             {
-                Destroy(this.gameObject);
-                if (projectile.IsDestroyable())
-                    Destroy(projectile.gameObject);
+                Vector3 moveToVector = Vector3.zero;
+
+                // if player ship exists
+                if (!_playerShip.Equals(null))
+                {
+                    // create normalized direction vector
+                    moveToVector = (_playerShip.position - transform.position).normalized;
+                }
+
+                // change position with given speed
+                transform.position += moveToVector * Time.fixedDeltaTime * moveSpeed;
             }
         }
     }

@@ -2,7 +2,6 @@
     "name": "MarsianShip",
     "rootNamespace": "",
     "references": [
-        "GUID:05acb1ef16f18a74fab8d243f2d8bb5e",
         "GUID:e07e1e51020ee014aaba209256ab9d73"
     ],
     "includePlatforms": [],

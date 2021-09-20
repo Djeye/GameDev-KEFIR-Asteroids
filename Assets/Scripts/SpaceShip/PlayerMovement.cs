@@ -1,26 +1,20 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using asteroids.MarsianShip;
+using asteroids.Asteroids;
+using asteroids.Core;
 
 namespace asteroids.SpaceShip
 {
     public class PlayerMovement : MonoBehaviour
     {
-        [SerializeField] float rotateSpeed, acceleration;
-        private Vector3 _rawMovementVector;
-        private bool _rawAttackValue, _rawSpecialAttackValue;
+        [SerializeField] private float rotateSpeed, acceleration;
 
         private Vector3 _prevFramePosition, _prevFrameVelocity;
+        private PlayerInput _playerInput;
 
-        // Start is called before the first frame update
-        void Start()
-        {
-        }
+        private void Awake() => _playerInput = GetComponent<PlayerInput>();
 
-        // Update is called once per frame
-        void Update()
+        private void FixedUpdate()
         {
             ApplyMovement();
             ApplyRotation();
@@ -50,8 +44,11 @@ namespace asteroids.SpaceShip
             // Calculate position in the last frame at start of new frame
             _prevFramePosition = transform.position;
 
+            // only forward moving
+            float _rawMovementTowards = Mathf.Clamp(_playerInput.GetMovementVector().y, 0, 1);
+
             // True Acceleration is acceleration when player press move button multiplied by directional vector of spaceship
-            Vector3 trueAcceleration = acceleration * _rawMovementVector.y * transform.up;
+            Vector3 trueAcceleration = acceleration * _rawMovementTowards * transform.up;
 
             // Change position by calculating inertia from last frame, plus acceleration in new frame
             transform.position += _prevFrameVelocity * Time.deltaTime + trueAcceleration * Mathf.Pow(Time.deltaTime, 2) * 0.5f;
@@ -61,61 +58,28 @@ namespace asteroids.SpaceShip
         }
 
         // Rotate spaceship by player move buttons
-        private void ApplyRotation() => transform.Rotate(0, 0, -_rawMovementVector.x * Time.deltaTime * rotateSpeed);
+        private void ApplyRotation() => transform.Rotate(0, 0, -_playerInput.GetMovementVector().x * Time.deltaTime * rotateSpeed);
 
         #endregion
 
         #region Getters
-        public Transform ShipTransform
-        {
-            get
-            {
-                return transform;
-            }
-        }
+        public Transform ShipTransform { get { return transform; } }
 
-        public Quaternion ShipRotation
-        {
-            get
-            {
-                return transform.rotation;
-            }
-        }
+        public Quaternion ShipRotation { get { return transform.rotation; } }
 
-        public bool IsShipShootingCommon
-        {
-            get
-            {
-                return _rawAttackValue;
-            }
-        }
-
-        public bool IsShipShootingSpecial
-        {
-            get
-            {
-                return _rawSpecialAttackValue;
-            }
-        }
-
+        public float ShipVelocity { get { return _prevFrameVelocity.magnitude; } }
         #endregion
 
-        #region Input System methods
-        public void OnMovement(InputAction.CallbackContext value)
-        {
-            Vector2 inputValue = value.ReadValue<Vector2>();
-            _rawMovementVector = (Vector3)inputValue;
-        }
 
-        public void OnCommonAttack(InputAction.CallbackContext value)
+        // check for touching other dangerous objects
+        private void OnTriggerEnter2D(Collider2D collision)
         {
-            _rawAttackValue = value.performed;
+            // marsian or asteroid provide end of game
+            if (collision.TryGetComponent(out Marsian marsian) || collision.TryGetComponent(out Asteroid asteroid))
+            {
+                Extension.SetEndOfGame();
+                Destroy(this.gameObject);
+            }
         }
-
-        public void OnSpecialAttack(InputAction.CallbackContext value)
-        {
-            _rawSpecialAttackValue = value.performed;
-        }
-        #endregion
     }
 }
